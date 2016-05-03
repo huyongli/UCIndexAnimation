@@ -1,7 +1,9 @@
 package cn.ittiger.ucpage.view;
 
 import android.content.Context;
+import android.graphics.Canvas;
 import android.util.AttributeSet;
+import android.util.Log;
 
 /**
  * 内容视图的头部(对应UC首页新闻视图完全展示后的新闻类型导航头部部分，初始时隐藏)
@@ -23,13 +25,36 @@ public class ContentHeadView extends MoveView {
 		super(context, attrs, defStyleAttr);
 	}
 
-	public void onShowAnimation(float step) {
+	@Override
+	public void draw(Canvas canvas) {
 
-		updateMarginTop(-step);
+		super.draw(canvas);
+		if(mIsInit) {
+			this.mHideStopMarginTop = getMarginTop();
+			this.mNeedMoveHeight = getHeight();
+			this.mIsInit = false;
+			Log.d("MoveView", "ContentHeadView init marginTop:" + mHideStopMarginTop);
+		}
 	}
 
-	public void onHideAnimation(float step) {
+	public void setShowStopMarginTop(int stopMarginTop) {
 
-		updateMarginTop(step);
+		this.mShowStopMarginTop = stopMarginTop;
+	}
+
+	public synchronized void onShowAnimation(float step) {
+
+		if(isShowFinish()) {
+			return;
+		}
+		updateMarginTop(-getShowMoveStep(step));
+	}
+
+	public synchronized void onHideAnimation(float step) {
+
+		if(isHideFinish()) {
+			return;
+		}
+		updateMarginTop(getHideMoveStep(step));
 	}
 }

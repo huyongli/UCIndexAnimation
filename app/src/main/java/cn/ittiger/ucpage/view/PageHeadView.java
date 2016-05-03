@@ -1,7 +1,9 @@
 package cn.ittiger.ucpage.view;
 
 import android.content.Context;
+import android.graphics.Canvas;
 import android.util.AttributeSet;
+import android.util.Log;
 
 /**
  * @author laohu
@@ -10,7 +12,6 @@ import android.util.AttributeSet;
  * 页面头部View(对应UC首页新闻视图向上滑动完成后页面的头部View，UC中最开始隐藏)
  */
 public class PageHeadView extends MoveView {
-	private boolean mStartMove = false;
 
 	public PageHeadView(Context context) {
 
@@ -27,36 +28,33 @@ public class PageHeadView extends MoveView {
 		super(context, attrs, defStyleAttr);
 	}
 
-	public void startMoved() {
+	@Override
+	public void draw(Canvas canvas) {
 
-		mStartMove = true;
-	}
+		super.draw(canvas);
 
-	public void onShowAnimation(float step) {
-
-		updateMarginTop(step);
-		if(getMarginTop() > 0) {
-			mStartMove = false;
-		}
-	}
-	
-	public void onHideAnimation(float step) {
-
-		updateMarginTop(-step);
-		if(getMarginTop() <= 0) {
-			mStartMove = false;
+		if(mIsInit) {
+			this.mShowStopMarginTop = 0;
+			this.mHideStopMarginTop = getMarginTop();
+			this.mNeedMoveHeight = getHeight();
+			this.mIsInit = false;
+			Log.d("MoveView", "PageHeadView init marginTop:" + mHideStopMarginTop);
 		}
 	}
 
-	public boolean isShowFinish() {
+	public synchronized void onShowAnimation(float step) {
 
-		return !mStartMove && getMarginTop() <= 0 ? false : true;
-	}
-	
-	public boolean isHideFinish() {
-
-		return !mStartMove && getMarginTop() > 0 ? false : true;
+		if(isShowFinish()) {
+			return;
+		}
+		updateMarginTop(getShowMoveStep(step));
 	}
 
+	public synchronized void onHideAnimation(float step) {
 
+		if(isHideFinish()) {
+			return;
+		}
+		updateMarginTop(-getHideMoveStep(step));
+	}
 }

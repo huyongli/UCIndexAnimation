@@ -61,17 +61,6 @@
             android:layout_height="wrap_content"
             android:text="@string/content" />
 
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="onMoveUpClick"
-            android:text="上滑动画" />
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="onMoveDownClick"
-            android:text="下滑动画" />
     </cn.ittiger.ucpage.view.ContentView>
 
 </FrameLayout>

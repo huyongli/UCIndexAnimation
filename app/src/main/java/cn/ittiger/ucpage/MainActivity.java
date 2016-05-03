@@ -10,8 +10,8 @@ import cn.ittiger.ucpage.view.TouchMoveView;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MotionEvent;
-import android.view.View;
 import android.view.Window;
 
 /**
@@ -42,10 +42,8 @@ public class MainActivity extends Activity implements TouchMoveView.TouchMoveLis
 
 		super.onWindowFocusChanged(hasFocus);
 		//ContentView需要移动的距离为其本身到顶部的MarginTop值减去ContentHeadView和PageHeadView两者的高度
-		int contentViewMoveHeight = Math.abs(mContentView.getMarginTop()) - mContentHeadView.getHeight() - mPageHeadView.getHeight();
-		mContentView.setNeedMoveHeight(contentViewMoveHeight);
-		mContentHeadView.setNeedMoveHeight(mContentHeadView.getHeight());
-		mPageHeadView.setNeedMoveHeight(mPageHeadView.getHeight());
+		mContentView.setShowStopMarginTop(mContentHeadView.getHeight() + mPageHeadView.getHeight());
+		mContentHeadView.setShowStopMarginTop(mPageHeadView.getHeight());
 	}
 
 	private float mLastTouchX = 0;
@@ -58,43 +56,70 @@ public class MainActivity extends Activity implements TouchMoveView.TouchMoveLis
 		switch (event.getAction()) {
 			case MotionEvent.ACTION_DOWN:
 				mLastTouchX = event.getRawX();
-				mLastTouchY = event.getRawX();
-				mPageHeadView.startMoved();
+				mLastTouchY = event.getRawY();
 				break;
 			case MotionEvent.ACTION_MOVE:
 				mDelY = event.getRawY() - mLastTouchY;
-				if(!(mPageHeadView.isHideFinish() || mPageHeadView.isShowFinish())) {
-					float pageHeadViewStep = mDelY * mPageHeadView.getNeedMoveHeight() / mContentView.getNeedMoveHeight();
-					float contentViewStep = mDelY;
-					float contentHeadViewStep = mDelY + mDelY * mContentHeadView.getNeedMoveHeight() / mContentView.getNeedMoveHeight();
-					if(mDelY > 0) {//往下滑
-						mPageHeadView.onHideAnimation(pageHeadViewStep);
-						mContentView.onHideAnimation(contentViewStep);
-						mContentHeadView.onHideAnimation(contentHeadViewStep);
-					} else {//往上滑
-						mPageHeadView.onShowAnimation(pageHeadViewStep);
-						mContentView.onShowAnimation(contentViewStep);
-						mContentHeadView.onShowAnimation(contentHeadViewStep);
-					}
-				}
+				viewMove(mDelY);
+				mLastTouchY = event.getRawY();
 				break;
 			case MotionEvent.ACTION_UP:
+				slip(mDelY);
 				break;
 		}
 	}
 
-	public void onMoveUpClick(View view) {
-		
+	private void slip(float delY) {
+		final int step = 20;
+		if(delY > 0) {
+			if(mPageHeadView.isHideFinish() && mContentHeadView.isHideFinish() && mContentHeadView.isHideFinish()) {
+				Log.d("MoveView", "PageHeadView init marginTop:" + mPageHeadView.getMarginTop());
+				Log.d("MoveView", "ContentHeadView init marginTop:" + mContentHeadView.getMarginTop());
+				Log.d("MoveView", "ContentView init marginTop:" + mContentView.getMarginTop());
+				return;
+			}
+			mPageHeadView.postDelayed(new Runnable() {
+				@Override
+				public void run() {
+					viewMove(step);
+					slip(step);
+				}
+			}, 5);
+		} else {
+			if(mPageHeadView.isShowFinish() && mContentHeadView.isShowFinish() && mContentHeadView.isShowFinish()) {
+				Log.d("MoveView", "***PageHeadView finish marginTop:" + mPageHeadView.getMarginTop());
+				Log.d("MoveView", "***ContentHeadView finish marginTop:" + mContentHeadView.getMarginTop());
+				Log.d("MoveView", "***ContentView finish marginTop:" + mContentView.getMarginTop());
+				return;
+			}
+			mPageHeadView.postDelayed(new Runnable() {
+				@Override
+				public void run() {
+					viewMove(-step);
+					slip(-step);
+				}
+			}, 5);
+		}
 	}
 
-	public void onMoveDownClick(View view) {
-		int count = 100;//200次，200*10共2秒
-		float step = mPageHeadView.getHeight() / count * 1.0f;
-		for(int i = 0; i < count && !mPageHeadView.isHideFinish(); i++) {
-			if(mPageHeadView.isHideFinish()) {
-				break;
+	private void viewMove(float delY) {
+		float step = Math.abs(delY);
+		float pageHeadViewStep = step * mPageHeadView.getNeedMoveHeight() / mContentView.getNeedMoveHeight();
+		float contentViewStep = step;
+		float contentHeadViewStep = step + step * mContentHeadView.getNeedMoveHeight() / mContentView.getNeedMoveHeight();
+
+		if(delY > 0) {//往下滑
+			if(!(mPageHeadView.isHideFinish() && mContentHeadView.isHideFinish() && mContentHeadView.isHideFinish())) {
+				mPageHeadView.onHideAnimation(pageHeadViewStep);
+				mContentView.onHideAnimation(contentViewStep);
+				mContentHeadView.onHideAnimation(contentHeadViewStep);
 			}
-			mPageHeadView.onHideAnimation(step);
+		} else {//往上滑
+			if(!(mPageHeadView.isShowFinish() && mContentHeadView.isShowFinish() && mContentHeadView.isShowFinish())) {
+				mPageHeadView.onShowAnimation(pageHeadViewStep);
+				mContentView.onShowAnimation(contentViewStep);
+				mContentHeadView.onShowAnimation(contentHeadViewStep);
+			}
 		}
 	}
 }
