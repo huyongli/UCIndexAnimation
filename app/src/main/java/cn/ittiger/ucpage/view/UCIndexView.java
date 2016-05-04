@@ -314,16 +314,24 @@ public class UCIndexView extends FrameLayout implements TouchMoveView.TouchMoveL
 
         if(delY > 0) {//下滑
             if(!isHideFinish()) {
-                mPageHeadView.onHideAnimation(pageHeadViewStep);
+                if(mIsPageHeadViewFixed == false) {
+                    mPageHeadView.onHideAnimation(pageHeadViewStep);
+                }
                 mContentView.onHideAnimation(contentViewStep);
-                mContentHeadView.onHideAnimation(contentHeadViewStep);
+                if(mContentHeadViewEnable) {
+                    mContentHeadView.onHideAnimation(contentHeadViewStep);
+                }
                 mPageNavigationView.onHideAnimation(pageNavigationViewStep);
             }
         } else {//上滑
             if(!isShowFinish()) {
-                mPageHeadView.onShowAnimation(pageHeadViewStep);
+                if(mIsPageHeadViewFixed == false) {//PageHeadView没有被固定时才进行滑动
+                    mPageHeadView.onShowAnimation(pageHeadViewStep);
+                }
                 mContentView.onShowAnimation(contentViewStep);
-                mContentHeadView.onShowAnimation(contentHeadViewStep);
+                if(mContentHeadViewEnable) {//ContentHeadView启用时才进行滑动
+                    mContentHeadView.onShowAnimation(contentHeadViewStep);
+                }
                 mPageNavigationView.onShowAnimation(pageNavigationViewStep);
             }
         }
@@ -335,8 +343,13 @@ public class UCIndexView extends FrameLayout implements TouchMoveView.TouchMoveL
      */
     private boolean isHideFinish() {
 
-        return mPageHeadView.isHideFinish() && mContentHeadView.isHideFinish() &&
-                mContentHeadView.isHideFinish() && mPageNavigationView.isHideFinish();
+        //当PageHeadView固定的时候，默认为恢复结束
+        boolean pageHeadViewHideFinish = mIsPageHeadViewFixed ? true : mPageHeadView.isHideFinish();
+        //当ContentHeadView不启用的时候，默认为恢复结束
+        boolean contentHeadViewHideFinish = mContentHeadViewEnable ? mContentHeadView.isHideFinish() : true;
+
+        return pageHeadViewHideFinish && mContentHeadView.isHideFinish() &&
+                contentHeadViewHideFinish && mPageNavigationView.isHideFinish();
     }
 
     /**
@@ -345,7 +358,12 @@ public class UCIndexView extends FrameLayout implements TouchMoveView.TouchMoveL
      */
     private boolean isShowFinish() {
 
-        return mPageHeadView.isShowFinish() && mContentHeadView.isShowFinish() &&
-                mContentHeadView.isShowFinish() && mPageNavigationView.isShowFinish();
+        //当PageHeadView固定的时候，默认为展示结束
+        boolean pageHeadViewShowFinish = mIsPageHeadViewFixed ? true : mPageHeadView.isHideFinish();
+        //当ContentHeadView不启用的时候，默认为展示结束
+        boolean contentHeadViewShowFinish = mContentHeadViewEnable ? mContentHeadView.isHideFinish() : true;
+
+        return pageHeadViewShowFinish && mContentHeadView.isShowFinish() &&
+                contentHeadViewShowFinish && mPageNavigationView.isShowFinish();
     }
 }

@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     ucindexview:pageHeadViewHeight="@dimen/dp_40"
-    ucindexview:isPageHeadViewFixed="false"
+    ucindexview:isPageHeadViewFixed="true"
     ucindexview:contentHeadViewEnable="true"
     ucindexview:contentHeadViewHeight="@dimen/dp_40"
     ucindexview:pageNavigationViewHeight="@dimen/dp_200"
