@@ -2,46 +2,48 @@ package cn.ittiger.ucpage.view;
 
 import android.content.Context;
 import android.util.AttributeSet;
-import android.widget.LinearLayout;
+import android.widget.FrameLayout;
 
-public class MoveView extends LinearLayout {
+/**
+ * @author laohu
+ * @link http://ittiger.cn
+ *
+ */
+public class MoveView extends FrameLayout {
 
 	/**
 	 * 需要滑动的高度
 	 */
 	protected int mNeedMoveHeight = -1;
 	/**
-	 * Show展示时的停止值
+	 * Show展示时的停止值，此处我设置向上滑动为Show的状态，也可称为展示状态
 	 */
 	protected int mShowStopMarginTop;
 	/**
-	 * Hide时的停止值
+	 * Hide时的停止值，此处我设置向下滑动为Hide状态，也可称为恢复初始化状态
 	 */
 	protected int mHideStopMarginTop;
-	/**
-	 * 是否为初始化
-	 */
-	protected boolean mIsInit = true;
-	
+
 	public MoveView(Context context, AttributeSet attrs, int defStyleAttr) {
+
 		super(context, attrs, defStyleAttr);
 	}
 
 	public MoveView(Context context, AttributeSet attrs) {
+
 		super(context, attrs);
 	}
 
 	public MoveView(Context context) {
+
 		super(context);
 	}
 
 	/**
-	 * 手触摸在上面是否可以滑动
-	 * @author: huylee
-	 * @time:	2016-4-28下午10:06:29
-	 * @return
+	 * 当前View是否可以出发TouchEvent事件
+	 * @return 默认不允许
 	 */
-	public boolean isTouchMoveEnable() {
+	public boolean isTouchEventEnable() {
 
 		return false;
 	}
@@ -56,7 +58,34 @@ public class MoveView extends LinearLayout {
 	}
 
 	/**
-	 * 或取此视图的marginTop值
+	 * 设置此视图需要滑动的高度
+	 * @param needMoveHeight
+	 */
+	public void setNeedMoveHeight(int needMoveHeight) {
+
+		mNeedMoveHeight = needMoveHeight;
+	}
+
+	/**
+	 * 设置此视图向上滑动时，滑动停止时的marginTop值
+	 * @param showStopMarginTop
+	 */
+	public void setShowStopMarginTop(int showStopMarginTop) {
+
+		mShowStopMarginTop = showStopMarginTop;
+	}
+
+	/**
+	 * 设置此视图向下滑动时，滑动停止时的marginTop值
+	 * @param hideStopMarginTop
+	 */
+	public void setHideStopMarginTop(int hideStopMarginTop) {
+
+		mHideStopMarginTop = hideStopMarginTop;
+	}
+
+	/**
+	 * 或取此视图当前的marginTop值
 	 * @return
 	 */
 	public int getMarginTop() {
@@ -79,6 +108,10 @@ public class MoveView extends LinearLayout {
 		invalidate();
 	}
 
+	/**
+	 * 是否恢复完成
+	 * @return
+	 */
 	public synchronized boolean isHideFinish() {
 
 		if(mHideStopMarginTop < 0) {
@@ -88,6 +121,10 @@ public class MoveView extends LinearLayout {
 		}
 	}
 
+	/**
+	 * 是否展示完成
+	 * @return
+	 */
 	public synchronized boolean isShowFinish() {
 
 		if(mShowStopMarginTop > 0) {
@@ -97,13 +134,15 @@ public class MoveView extends LinearLayout {
 		}
 	}
 
+
 	/**
 	 * 获取当前实际可滑动的距离
 	 * @param step  可滑动距离，此距离值会与最大可滑动距离进行比较，取最小值
 	 * @return
 	 */
 	public float getShowMoveStep(float step) {
-		int maxStep = Math.abs(getMarginTop()) - Math.abs(mShowStopMarginTop);//此次滑动所允许滑动的最大step
+
+		int maxStep = Math.abs(Math.abs(getMarginTop()) - Math.abs(mShowStopMarginTop));//此次滑动所允许滑动的最大step
 		if(step > maxStep) {//可用滑动的marginTop小于step值,则用最大可滑动值替代
 			step = maxStep;
 		}
@@ -116,7 +155,8 @@ public class MoveView extends LinearLayout {
 	 * @return
 	 */
 	public float getHideMoveStep(float step) {
-		int maxStep = Math.abs(mHideStopMarginTop) - Math.abs(getMarginTop());//此次滑动所允许滑动的最大step
+
+		int maxStep = Math.abs(Math.abs(mHideStopMarginTop) - Math.abs(getMarginTop()));//此次滑动所允许滑动的最大step
 		if(step > maxStep) {//可用滑动的marginTop小于step值,则用最大可滑动值替代
 			step = maxStep;
 		}

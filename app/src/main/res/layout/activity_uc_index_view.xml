@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<cn.ittiger.ucpage.view.UCIndexView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:ucindexview="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    ucindexview:pageHeadViewHeight="@dimen/dp_40"
+    ucindexview:isPageHeadViewFixed="false"
+    ucindexview:contentHeadViewEnable="true"
+    ucindexview:contentHeadViewHeight="@dimen/dp_40"
+    ucindexview:pageNavigationViewHeight="@dimen/dp_200"
+    ucindexview:pageHeadViewLayoutId="@layout/page_head_view_layout"
+    ucindexview:pageNavigationViewLayoutId="@layout/page_navigation_view_layout"
+    ucindexview:contentHeadViewLayoutId="@layout/content_head_view_layout"
+    ucindexview:contentViewLayoutId="@layout/content_view_layout">
+
+</cn.ittiger.ucpage.view.UCIndexView>

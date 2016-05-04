@@ -12,22 +12,46 @@ import android.util.AttributeSet;
 public class PageNavigationView extends TouchMoveView {
 
 	public PageNavigationView(Context context) {
+
 		super(context);
-		init(context);
 	}
 
 	public PageNavigationView(Context context, AttributeSet attrs) {
+
 		super(context, attrs);
-		init(context);
 	}
 
 	public PageNavigationView(Context context, AttributeSet attrs,
 			int defStyleAttr) {
+
 		super(context, attrs, defStyleAttr);
-		init(context);
 	}
 
-	private void init(Context context) {
-		
+	public synchronized void onShowAnimation(float step) {
+
+		if(isShowFinish()) {
+			return;
+		}
+		updateMarginTop(-getShowMoveStep(step));
+	}
+
+	public synchronized void onHideAnimation(float step) {
+
+		if(isHideFinish()) {
+			return;
+		}
+		updateMarginTop(getHideMoveStep(step));
+	}
+
+	@Override
+	public synchronized boolean isShowFinish() {
+
+		return getMarginTop() <= mShowStopMarginTop ? true : false;
+	}
+
+	@Override
+	public synchronized boolean isHideFinish() {
+
+		return getMarginTop() >= mHideStopMarginTop ? true : false;
 	}
 }

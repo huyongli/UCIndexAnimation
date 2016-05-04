@@ -22,19 +22,19 @@ public class TouchMoveView extends MoveView {
 	}
 
 	@Override
-	public boolean isTouchMoveEnable() {
+	public boolean isTouchEventEnable() {
 		return true;
 	}
 	
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 
-		if(isTouchMoveEnable()) {
+		if(isTouchEventEnable()) {
 			if(mTouchMoveListener != null) {
 				mTouchMoveListener.onTouchMoveEvent(event);
 			}
 		}
-		return true;
+		return isTouchEventEnable() || super.onTouchEvent(event);
 	}
 
 
