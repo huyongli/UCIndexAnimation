@@ -41,11 +41,4 @@ public class PageHeadView extends MoveView {
 		}
 		updateMarginTop(-getHideMoveStep(step));
 	}
-
-	public int getShowHeight() {
-
-		int marginTop = Math.abs(getMarginTop());
-
-		return mNeedMoveHeight - marginTop;
-	}
 }

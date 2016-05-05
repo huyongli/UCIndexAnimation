@@ -38,4 +38,22 @@ public class ContentView extends TouchMoveView {
 		}
 		updateMarginTop(getHideMoveStep(step));
 	}
+
+	/**
+	 * 获取当前视图在展示过程中已经滑离初始化位置的距离
+	 * @return
+	 */
+	public int getShowOffset() {
+
+		return mHideStopMarginTop - getMarginTop();
+	}
+
+	/**
+	 * 获取当前视图在恢复过程中已经滑离展示停止位置的距离
+	 * @return
+	 */
+	public int getHideOffset() {
+
+		return getMarginTop() - mShowStopMarginTop;
+	}
 }

@@ -5,11 +5,13 @@ import cn.ittiger.ucpage.R;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.FrameLayout;
 
 /**
- * Created by ylhu on 16-5-4.
+ * 包含UC首页动画的自定义View
+ * @author laohu
  */
 public class UCIndexView extends FrameLayout implements TouchMoveView.TouchMoveListener {
 
@@ -40,15 +42,19 @@ public class UCIndexView extends FrameLayout implements TouchMoveView.TouchMoveL
      */
     private boolean mIsPageHeadViewFixed = false;
     /**
-     * 内容头部视图是否启用，默认启用
+     * 内容视图的头部视图是否启用，默认启用
      */
-    private boolean mContentHeadViewEnable = true;
+    private boolean mIsContentHeadViewEnable = true;
+    /**
+     * 是否允许下拉时恢复初始化状态,默认不允许
+     */
+    private boolean mIsPullRestoreEnable = false;
     /**
      * 页面头部的高度
      */
     private int mPageHeadViewHeight = 0;
     /**
-     * 页面内容视图的头部视图的高度
+     * 页面内容视图的头部视图的高度,当内容视图的头部视图不启用时，此值为0
      */
     private int mContentHeadViewHeight = 0;
     /**
@@ -104,7 +110,7 @@ public class UCIndexView extends FrameLayout implements TouchMoveView.TouchMoveL
         mContentHeadViewHeight = (int)(contentHeadViewHeight + 0.5f);
 
         //内容视图的头部是否启用，默认启用
-        mContentHeadViewEnable = typeArray.getBoolean(R.styleable.UCIndexView_contentHeadViewEnable, true);
+        mIsContentHeadViewEnable = typeArray.getBoolean(R.styleable.UCIndexView_isContentHeadViewEnable, true);
 
         //内容视图头部的布局资源ID
         int contentHeadViewLayoutId = typeArray.getResourceId(R.styleable.UCIndexView_contentHeadViewLayoutId, 0);
@@ -114,6 +120,8 @@ public class UCIndexView extends FrameLayout implements TouchMoveView.TouchMoveL
 
         mAutoSlipStep = (int)(typeArray.getDimension(R.styleable.UCIndexView_autoSlipDistanceStep, mAutoSlipStep) + 0.5f);
         mAutoSlipTimeStep = typeArray.getInt(R.styleable.UCIndexView_autoSlipTimeStep, mAutoSlipTimeStep);
+
+        mIsPullRestoreEnable = typeArray.getBoolean(R.styleable.UCIndexView_isPullRestoreEnable, false);
 
         typeArray.recycle();
 
@@ -161,8 +169,12 @@ public class UCIndexView extends FrameLayout implements TouchMoveView.TouchMoveL
             throw new IllegalArgumentException("please set attribution pageNavigationViewLayoutId int UCIndexView");
         }
         mPageNavigationView = new PageNavigationView(mContext);
+        if(mIsPageHeadViewFixed) {//页面头部固定时，将PageNavigationView的PadingTop设置为PageHeadView的高度，防止PageHeadView将PageNavigationView的部分内容遮住
+            mPageNavigationView.setPadding(0, mPageHeadViewHeight, 0, 0);
+        }
         LayoutParams layoutParams = new LayoutParams(LayoutParams.MATCH_PARENT, (int)(pageNavigationViewHeight + 0.5f));
         mPageNavigationView.setLayoutParams(layoutParams);
+        mPageNavigationView.setTouchMoveListener(this);
 
         //向上滑动时PageNavigationView的停止位置设置为PageHeadView高度的一半
         mPageNavigationView.setShowStopMarginTop(-mPageHeadViewHeight / 2);
@@ -182,7 +194,8 @@ public class UCIndexView extends FrameLayout implements TouchMoveView.TouchMoveL
      */
     private void addContentHeadView(int resId, float contentHeadViewHeight, float marginTop) {
 
-        if(!mContentHeadViewEnable) {//内容头部视图不启用
+        if(!mIsContentHeadViewEnable) {//内容头部视图不启用
+            mContentHeadViewHeight = 0;
             return;
         }
         if(resId == 0) {
@@ -246,23 +259,23 @@ public class UCIndexView extends FrameLayout implements TouchMoveView.TouchMoveL
                 break;
             case MotionEvent.ACTION_MOVE:
                 mDelY = event.getRawY() - mLastTouchY;
-                viewMove(mDelY);
+                viewMove(mDelY, mIsPullRestoreEnable);
                 mLastTouchY = event.getRawY();
                 break;
             case MotionEvent.ACTION_UP:
-                int showHeight = mPageHeadView.getShowHeight();
-                if(mDelY > 0) {//hide
-                    if(showHeight > mPageHeadView.getNeedMoveHeight() / 2) {//没有滑过二分之一高度
-                        slip(-mDelY);
-                    } else {
-                        slip(mDelY);
+                int offset = 0;
+                if(mDelY > 0) {//hide，下拉
+                    if(!mIsPullRestoreEnable) {//当前不允许下拉恢复
+                        return;
                     }
-                } else {//show
-                    if(showHeight >= mPageHeadView.getNeedMoveHeight() / 2) {//没有滑过二分之一高度
-                        slip(mDelY);
-                    } else {
-                        slip(-mDelY);
-                    }
+                    offset = mContentView.getHideOffset();
+                } else {//show， 上拉
+                    offset = mContentView.getShowOffset();
+                }
+                if(offset <= mPageHeadView.getNeedMoveHeight() / 2) {//没有滑过二分之一高度
+                    slip(-mDelY, mIsPullRestoreEnable);
+                } else {
+                    slip(mDelY, mIsPullRestoreEnable);
                 }
                 break;
         }
@@ -272,29 +285,32 @@ public class UCIndexView extends FrameLayout implements TouchMoveView.TouchMoveL
      * 手指松开屏幕后，视图自动滑动
      * 每隔 mAutoSlipTimeStep 长时间滑动 mAutoSlipStep 距离
      * @param delY  当前的滑动距离
+     *  @param isPullRestoreEnable   是否允许下拉恢复
      */
-    private void slip(float delY) {
+    private void slip(float delY, final boolean isPullRestoreEnable) {
 
         if(delY > 0) {//当前滑动为向下滑动，即处于恢复状态
             if(isHideFinish()) {//已经恢复结束
                 return;
             }
-            mPageHeadView.postDelayed(new Runnable() {
+            postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    viewMove(mAutoSlipStep);
-                    slip(mAutoSlipStep);//准备下一次滑动
+
+                    viewMove(mAutoSlipStep, isPullRestoreEnable);
+                    slip(mAutoSlipStep, isPullRestoreEnable);//准备下一次滑动
                 }
             }, mAutoSlipTimeStep);
         } else {//当前滑动为向上滑动，即处于展示状态
             if(isShowFinish()) {//已经展示结束
                 return;
             }
-            mPageHeadView.postDelayed(new Runnable() {
+            postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    viewMove(-mAutoSlipStep);
-                    slip(-mAutoSlipStep);//准备下一次滑动
+
+                    viewMove(-mAutoSlipStep, isPullRestoreEnable);
+                    slip(-mAutoSlipStep, isPullRestoreEnable);//准备下一次滑动
                 }
             }, mAutoSlipTimeStep);
         }
@@ -302,34 +318,38 @@ public class UCIndexView extends FrameLayout implements TouchMoveView.TouchMoveL
 
     /**
      * 对所有视图进行滑动操作
-     * @param delY 当前的滑动步长
+     * @param delY                  当前的滑动步长
+     * @param isPullRestoreEnable   是否允许下拉恢复
      */
-    private void viewMove(float delY) {
+    private void viewMove(float delY, boolean isPullRestoreEnable) {
 
         float step = Math.abs(delY);
         float pageHeadViewStep = step * mPageHeadView.getNeedMoveHeight() / mContentView.getNeedMoveHeight();
         float contentViewStep = step;
-        float contentHeadViewStep = step + step * mContentHeadView.getNeedMoveHeight() / mContentView.getNeedMoveHeight();
+        float contentHeadViewStep = mIsContentHeadViewEnable ? step + step * mContentHeadView.getNeedMoveHeight() / mContentView.getNeedMoveHeight() : 0;
         float pageNavigationViewStep = step * mPageNavigationView.getNeedMoveHeight() / mContentView.getNeedMoveHeight();
 
         if(delY > 0) {//下滑
-            if(!isHideFinish()) {
+            if(!isPullRestoreEnable) {//当前不允许下拉恢复
+                return;
+            }
+            if(!isHideFinish()) {//恢复状态是否已完成
                 if(mIsPageHeadViewFixed == false) {
                     mPageHeadView.onHideAnimation(pageHeadViewStep);
                 }
                 mContentView.onHideAnimation(contentViewStep);
-                if(mContentHeadViewEnable) {
+                if(mIsContentHeadViewEnable) {
                     mContentHeadView.onHideAnimation(contentHeadViewStep);
                 }
                 mPageNavigationView.onHideAnimation(pageNavigationViewStep);
             }
         } else {//上滑
-            if(!isShowFinish()) {
+            if(!isShowFinish()) {//展示状态是否已完成
                 if(mIsPageHeadViewFixed == false) {//PageHeadView没有被固定时才进行滑动
                     mPageHeadView.onShowAnimation(pageHeadViewStep);
                 }
                 mContentView.onShowAnimation(contentViewStep);
-                if(mContentHeadViewEnable) {//ContentHeadView启用时才进行滑动
+                if(mIsContentHeadViewEnable) {//ContentHeadView启用时才进行滑动
                     mContentHeadView.onShowAnimation(contentHeadViewStep);
                 }
                 mPageNavigationView.onShowAnimation(pageNavigationViewStep);
@@ -346,10 +366,10 @@ public class UCIndexView extends FrameLayout implements TouchMoveView.TouchMoveL
         //当PageHeadView固定的时候，默认为恢复结束
         boolean pageHeadViewHideFinish = mIsPageHeadViewFixed ? true : mPageHeadView.isHideFinish();
         //当ContentHeadView不启用的时候，默认为恢复结束
-        boolean contentHeadViewHideFinish = mContentHeadViewEnable ? mContentHeadView.isHideFinish() : true;
+        boolean contentHeadViewHideFinish = mIsContentHeadViewEnable ? mContentHeadView.isHideFinish() : true;
 
-        return pageHeadViewHideFinish && mContentHeadView.isHideFinish() &&
-                contentHeadViewHideFinish && mPageNavigationView.isHideFinish();
+        return pageHeadViewHideFinish && mPageNavigationView.isHideFinish() &&
+                contentHeadViewHideFinish && mContentView.isHideFinish();
     }
 
     /**
@@ -359,11 +379,28 @@ public class UCIndexView extends FrameLayout implements TouchMoveView.TouchMoveL
     private boolean isShowFinish() {
 
         //当PageHeadView固定的时候，默认为展示结束
-        boolean pageHeadViewShowFinish = mIsPageHeadViewFixed ? true : mPageHeadView.isHideFinish();
+        boolean pageHeadViewShowFinish = mIsPageHeadViewFixed ? true : mPageHeadView.isShowFinish();
         //当ContentHeadView不启用的时候，默认为展示结束
-        boolean contentHeadViewShowFinish = mContentHeadViewEnable ? mContentHeadView.isHideFinish() : true;
+        boolean contentHeadViewShowFinish = mIsContentHeadViewEnable ? mContentHeadView.isShowFinish() : true;
 
-        return pageHeadViewShowFinish && mContentHeadView.isShowFinish() &&
-                contentHeadViewShowFinish && mPageNavigationView.isShowFinish();
+        return pageHeadViewShowFinish && mPageNavigationView.isShowFinish() &&
+                contentHeadViewShowFinish && mContentView.isShowFinish();
+    }
+
+    /**
+     * 恢复初始化状态
+     */
+    public void onBackRestore() {
+        slip(1, true);
+    }
+
+    public boolean isPullRestoreEnable() {
+
+        return mIsPullRestoreEnable;
+    }
+
+    public void setPullRestoreEnable(boolean isPullRestoreEnable) {
+
+        mIsPullRestoreEnable = isPullRestoreEnable;
     }
 }

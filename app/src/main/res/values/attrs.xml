@@ -6,11 +6,12 @@
         <attr name="pageHeadViewLayoutId" format="reference"></attr><!-- UC页面头部内容的布局资源ID -->
         <attr name="pageNavigationViewHeight" format="dimension"></attr><!-- UC网站导航部分的高度 -->
         <attr name="pageNavigationViewLayoutId" format="reference"></attr><!-- UC网站导航部分的内容布局资源ID -->
-        <attr name="contentHeadViewEnable" format="boolean"></attr><!-- UC新闻内容头部的是否启用 -->
+        <attr name="isContentHeadViewEnable" format="boolean"></attr><!-- UC新闻内容头部的是否启用 -->
         <attr name="contentHeadViewHeight" format="dimension"></attr><!-- UC新闻内容头部的高度 -->
         <attr name="contentHeadViewLayoutId" format="reference"></attr><!-- UC新闻内容头部的内容布局资源ID -->
         <attr name="contentViewLayoutId" format="reference"></attr><!-- UC新闻内容布局资源ID -->
         <attr name="autoSlipDistanceStep" format="dimension"></attr><!-- 手指放开后，视图自动滑动时的每次滑动距离间隔，默认每次滑动20px -->
         <attr name="autoSlipTimeStep" format="integer"></attr><!-- 手指放开后，视图自动滑动时的时间间隔，默认每间隔5毫秒滑动一次 -->
+        <attr name="isPullRestoreEnable" format="boolean"></attr><!-- 是否允许下拉时恢复初始化状态 -->
     </declare-styleable>
 </resources>

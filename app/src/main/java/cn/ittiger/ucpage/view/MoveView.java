@@ -52,7 +52,7 @@ public class MoveView extends FrameLayout {
 	 * 获取此视图需要滑动的高度
 	 * @return
 	 */
-	public int getNeedMoveHeight() {
+	protected int getNeedMoveHeight() {
 
 		return mNeedMoveHeight;
 	}
@@ -61,7 +61,7 @@ public class MoveView extends FrameLayout {
 	 * 设置此视图需要滑动的高度
 	 * @param needMoveHeight
 	 */
-	public void setNeedMoveHeight(int needMoveHeight) {
+	protected void setNeedMoveHeight(int needMoveHeight) {
 
 		mNeedMoveHeight = needMoveHeight;
 	}
@@ -70,7 +70,7 @@ public class MoveView extends FrameLayout {
 	 * 设置此视图向上滑动时，滑动停止时的marginTop值
 	 * @param showStopMarginTop
 	 */
-	public void setShowStopMarginTop(int showStopMarginTop) {
+	protected void setShowStopMarginTop(int showStopMarginTop) {
 
 		mShowStopMarginTop = showStopMarginTop;
 	}
@@ -79,7 +79,7 @@ public class MoveView extends FrameLayout {
 	 * 设置此视图向下滑动时，滑动停止时的marginTop值
 	 * @param hideStopMarginTop
 	 */
-	public void setHideStopMarginTop(int hideStopMarginTop) {
+	protected void setHideStopMarginTop(int hideStopMarginTop) {
 
 		mHideStopMarginTop = hideStopMarginTop;
 	}
@@ -88,7 +88,7 @@ public class MoveView extends FrameLayout {
 	 * 或取此视图当前的marginTop值
 	 * @return
 	 */
-	public int getMarginTop() {
+	protected int getMarginTop() {
 
 		return ((MarginLayoutParams)getLayoutParams()).topMargin;
 	}
@@ -97,7 +97,7 @@ public class MoveView extends FrameLayout {
 	 * 根据指定的step更新此视图的MarginTop值
 	 * @param step  此处的step值分正负，如果向marginTop减小，则step为负数
 	 */
-	public void updateMarginTop(float step) {
+	protected void updateMarginTop(float step) {
 
 		//将step转换为整数
 		int intStep = step > 0 ? ((int)(step + 0.5f)) : -((int)(Math.abs(step) + 0.5f));
@@ -112,7 +112,7 @@ public class MoveView extends FrameLayout {
 	 * 是否恢复完成
 	 * @return
 	 */
-	public synchronized boolean isHideFinish() {
+	protected synchronized boolean isHideFinish() {
 
 		if(mHideStopMarginTop < 0) {
 			return getMarginTop() <= mHideStopMarginTop ? true : false;
@@ -125,7 +125,7 @@ public class MoveView extends FrameLayout {
 	 * 是否展示完成
 	 * @return
 	 */
-	public synchronized boolean isShowFinish() {
+	protected synchronized boolean isShowFinish() {
 
 		if(mShowStopMarginTop > 0) {
 			return getMarginTop() <= mShowStopMarginTop ? true : false;
@@ -140,7 +140,7 @@ public class MoveView extends FrameLayout {
 	 * @param step  可滑动距离，此距离值会与最大可滑动距离进行比较，取最小值
 	 * @return
 	 */
-	public float getShowMoveStep(float step) {
+	protected float getShowMoveStep(float step) {
 
 		int maxStep = Math.abs(Math.abs(getMarginTop()) - Math.abs(mShowStopMarginTop));//此次滑动所允许滑动的最大step
 		if(step > maxStep) {//可用滑动的marginTop小于step值,则用最大可滑动值替代
@@ -154,7 +154,7 @@ public class MoveView extends FrameLayout {
 	 * @param step  可滑动距离，此距离值会与最大可滑动距离进行比较，取最小值
 	 * @return
 	 */
-	public float getHideMoveStep(float step) {
+	protected float getHideMoveStep(float step) {
 
 		int maxStep = Math.abs(Math.abs(mHideStopMarginTop) - Math.abs(getMarginTop()));//此次滑动所允许滑动的最大step
 		if(step > maxStep) {//可用滑动的marginTop小于step值,则用最大可滑动值替代
