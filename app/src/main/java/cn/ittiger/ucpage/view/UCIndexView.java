@@ -324,8 +324,11 @@ public class UCIndexView extends FrameLayout implements TouchMoveView.TouchMoveL
     private void viewMove(float delY, boolean isPullRestoreEnable) {
 
         float step = Math.abs(delY);
+        //根据滑动距离的比例计算PageHeadView的滑动步长
         float pageHeadViewStep = step * mPageHeadView.getNeedMoveHeight() / mContentView.getNeedMoveHeight();
+        //手指滑动距离作为ContentView的滑动步长
         float contentViewStep = step;
+        //ContentHeadView初始不固定显示时，其实际滑动步长为ContentView的滑动步长加上其相对ContentView的滑动步长
         float contentHeadViewStep = mIsContentHeadViewEnable ? step + step * mContentHeadView.getNeedMoveHeight() / mContentView.getNeedMoveHeight() : 0;
         float pageNavigationViewStep = step * mPageNavigationView.getNeedMoveHeight() / mContentView.getNeedMoveHeight();
 
